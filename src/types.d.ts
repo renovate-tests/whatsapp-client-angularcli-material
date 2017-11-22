@@ -141,7 +141,7 @@ export namespace AddChat {
 export namespace AddGroup {
   export type Variables = {
     recipientIds: string[];
-    groupName?: string | null;
+    groupName: string;
   }
 
   export type Mutation = {

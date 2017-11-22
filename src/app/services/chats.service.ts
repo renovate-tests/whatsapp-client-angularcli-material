@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {Apollo, QueryRef} from 'apollo-angular';
 import {getChatsQuery} from '../../graphql/getChats.query';
-import {AddChat, AddMessage, GetChat, GetChats, GetUsers} from '../../types';
+import {AddChat, AddGroup, AddMessage, GetChat, GetChats, GetUsers} from '../../types';
 import {getUsersQuery} from '../../graphql/getUsers.query';
 import {ApolloQueryResult} from 'apollo-client';
 import {concat, map, share, switchMap} from 'rxjs/operators';
@@ -13,17 +13,18 @@ import {Observable} from 'rxjs/Observable';
 import {FetchResult} from 'apollo-link';
 import {of} from 'rxjs/observable/of';
 import {AsyncSubject} from 'rxjs/AsyncSubject';
+import {addGroupMutation} from '../../graphql/addGroup.mutation';
 
 const currentUserId = '1';
 const currentUserName = 'Ethan Gonzalez';
 
 @Injectable()
 export class ChatsService {
-  addChat$: Observable<FetchResult<AddChat.Mutation>>;
+  addChat$: Observable<FetchResult<AddChat.Mutation | AddGroup.Mutation>>;
   getChatsWQ: QueryRef<GetChats.Query>;
   chats$: Observable<GetChats.Chats[]>;
   chats: GetChats.Chats[];
-  getChatWQ$: AsyncSubject<QueryRef<GetChat.Query>>;
+  getChatWQSubject: AsyncSubject<QueryRef<GetChat.Query>>;
 
   constructor(private apollo: Apollo) {
     this.getChatsWQ = this.apollo.watchQuery<GetChats.Query>({
@@ -53,15 +54,13 @@ export class ChatsService {
       });
     };
 
-    let query = getApolloWatchQuery(chatId);
-    this.getChatWQ$ = new AsyncSubject();
-    this.getChatWQ$.next(query);
+    this.getChatWQSubject = new AsyncSubject();
 
     const chat$FromCache = of<GetChat.Chat>({
       id: chatId,
       name: this.chats ? this.chats.find(chat => chat.id === chatId).name : '',
       picture: this.chats ? this.chats.find(chat => chat.id === chatId).picture : '',
-      isGroup: false,
+      isGroup: this.chats ? this.chats.find(chat => chat.id === chatId).isGroup : false,
       messages: [],
     });
 
@@ -70,17 +69,19 @@ export class ChatsService {
     if (oui) {
       chat$ = chat$FromCache.pipe(
         concat(this.addChat$.pipe(
-          switchMap(({ data: { addChat } }) => {
-            query = getApolloWatchQuery(addChat.id);
-            this.getChatWQ$.next(query);
-            this.getChatWQ$.complete();
+          switchMap(({ data: { addChat, addGroup } }) => {
+            const query = getApolloWatchQuery(addChat ? addChat.id : addGroup.id);
+            this.getChatWQSubject.next(query);
+            this.getChatWQSubject.complete();
             return query.valueChanges.pipe(
               map((result: ApolloQueryResult<GetChat.Query>) => result.data.chat)
             );
           }))
         ));
     } else {
-      this.getChatWQ$.complete();
+      const query = getApolloWatchQuery(chatId);
+      this.getChatWQSubject.next(query);
+      this.getChatWQSubject.complete();
       chat$ = chat$FromCache.pipe(
         concat(query.valueChanges.pipe(
           map((result: ApolloQueryResult<GetChat.Query>) => result.data.chat)
@@ -98,7 +99,7 @@ export class ChatsService {
     const isGroup$ = chat$.pipe(
       map((result: GetChat.Chat) => result.isGroup)
     );
-    return {query$: this.getChatWQ$, chat$, messages$, title$, isGroup$};
+    return {query$: this.getChatWQSubject.asObservable(), chat$, messages$, title$, isGroup$};
   }
 
   getUsers() {
@@ -136,6 +137,38 @@ export class ChatsService {
         const data: GetChats.Query = store.readQuery({ query: getChatsQuery });
         // Add our comment from the mutation to the end.
         data.chats.push(addChat);
+        // Write our data back to the cache.
+        store.writeQuery({ query: getChatsQuery, data });
+      },
+    }).pipe(share());
+    return this.addChat$;
+  }
+
+  addGroup(recipientIds: string[], groupName: string, ouiId: string) {
+    this.addChat$ = this.apollo.mutate({
+      mutation: addGroupMutation,
+      variables: <AddGroup.Variables>{
+        recipientIds,
+        groupName,
+      },
+      optimisticResponse: {
+        __typename: 'Mutation',
+        addGroup: {
+          id: ouiId,
+          __typename: 'Chat',
+          name: groupName,
+          picture: 'https://randomuser.me/api/portraits/thumb/lego/1.jpg',
+          userIds: [currentUserId, recipientIds],
+          unreadMessages: 0,
+          lastMessage: null,
+          isGroup: true,
+        },
+      },
+      update: (store, { data: { addGroup } }) => {
+        // Read the data from our cache for this query.
+        const data: GetChats.Query = store.readQuery({ query: getChatsQuery });
+        // Add our comment from the mutation to the end.
+        data.chats.push(addGroup);
         // Write our data back to the cache.
         store.writeQuery({ query: getChatsQuery, data });
       },

@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
-import {GetChats} from '../../../types';
+import {GetChats} from '../../../../types';
 
 @Component({
   selector: 'app-chats-list',

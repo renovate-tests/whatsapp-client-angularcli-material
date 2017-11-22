@@ -3,10 +3,10 @@ import {Apollo} from 'apollo-angular';
 import {Observable} from 'rxjs/Observable';
 import { map } from 'rxjs/operators';
 import {ApolloQueryResult} from 'apollo-client';
-import {GetChats} from '../../../types';
-import {getChatsQuery} from '../../../graphql/getChats.query';
+import {GetChats} from '../../../../types';
+import {getChatsQuery} from '../../../../graphql/getChats.query';
 import {ActivatedRoute, Router} from '@angular/router';
-import {ChatsService} from '../../services/chats.service';
+import {ChatsService} from '../../../services/chats.service';
 
 @Component({
   template: `

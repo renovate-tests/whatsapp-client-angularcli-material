@@ -2,9 +2,9 @@ import {Component, OnInit} from '@angular/core';
 import {Apollo} from 'apollo-angular';
 import {Location} from '@angular/common';
 import {Router} from '@angular/router';
-import {GetUsers} from '../../../types';
 import {Observable} from 'rxjs/Observable';
-import {ChatsService} from '../../services/chats.service';
+import {GetUsers} from '../../../../types';
+import {ChatsService} from '../../../services/chats.service';
 
 @Component({
   template: `
@@ -22,7 +22,7 @@ import {ChatsService} from '../../services/chats.service';
       <div>New group</div>
     </div>
 
-    <app-users-list [users$]="users$" (newChat)="addChat($event)"></app-users-list>
+    <app-users-list [users$]="users$" (selectUsers)="addChat($event)"></app-users-list>
   `,
   styleUrls: ['new-chat.component.scss'],
 })
@@ -57,7 +57,7 @@ export class NewChatComponent implements OnInit {
       // Generate id for Optimistic UI
       const ouiId = ChatsService.getRandomId();
       this.chatsService.addChat(recipientId, ouiId, this.users).subscribe();
-      this.router.navigate(['/chat/oui', ouiId]);
+      this.router.navigate(['/chat', ouiId], {queryParams: {oui: true}, skipLocationChange: true});
     }
   }
 }
