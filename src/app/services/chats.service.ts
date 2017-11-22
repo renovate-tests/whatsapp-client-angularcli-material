@@ -12,7 +12,7 @@ import * as moment from 'moment';
 import {Observable} from 'rxjs/Observable';
 import {FetchResult} from 'apollo-link';
 import {of} from 'rxjs/observable/of';
-import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+import {AsyncSubject} from 'rxjs/AsyncSubject';
 
 const currentUserId = '1';
 const currentUserName = 'Ethan Gonzalez';
@@ -23,6 +23,7 @@ export class ChatsService {
   getChatsWQ: QueryRef<GetChats.Query>;
   chats$: Observable<GetChats.Chats[]>;
   chats: GetChats.Chats[];
+  getChatWQ$: AsyncSubject<QueryRef<GetChat.Query>>;
 
   constructor(private apollo: Apollo) {
     this.getChatsWQ = this.apollo.watchQuery<GetChats.Query>({
@@ -43,7 +44,7 @@ export class ChatsService {
   }
 
   getChat(chatId: string, oui?: boolean) {
-    const apolloWatchQuery = (id: string) => {
+    const getApolloWatchQuery = (id: string) => {
       return this.apollo.watchQuery<GetChat.Query>({
         query: getChatQuery,
         variables: {
@@ -52,8 +53,9 @@ export class ChatsService {
       });
     };
 
-    let query = apolloWatchQuery(chatId);
-    const query$ = new BehaviorSubject(query);
+    let query = getApolloWatchQuery(chatId);
+    this.getChatWQ$ = new AsyncSubject();
+    this.getChatWQ$.next(query);
 
     const chat$FromCache = of<GetChat.Chat>({
       id: chatId,
@@ -69,16 +71,16 @@ export class ChatsService {
       chat$ = chat$FromCache.pipe(
         concat(this.addChat$.pipe(
           switchMap(({ data: { addChat } }) => {
-            query = apolloWatchQuery(addChat.id);
-            query$.next(query);
-            query$.complete();
+            query = getApolloWatchQuery(addChat.id);
+            this.getChatWQ$.next(query);
+            this.getChatWQ$.complete();
             return query.valueChanges.pipe(
               map((result: ApolloQueryResult<GetChat.Query>) => result.data.chat)
             );
           }))
         ));
     } else {
-      query$.complete();
+      this.getChatWQ$.complete();
       chat$ = chat$FromCache.pipe(
         concat(query.valueChanges.pipe(
           map((result: ApolloQueryResult<GetChat.Query>) => result.data.chat)
@@ -96,7 +98,7 @@ export class ChatsService {
     const isGroup$ = chat$.pipe(
       map((result: GetChat.Chat) => result.isGroup)
     );
-    return {query$, chat$, messages$, title$, isGroup$};
+    return {query$: this.getChatWQ$, chat$, messages$, title$, isGroup$};
   }
 
   getUsers() {
