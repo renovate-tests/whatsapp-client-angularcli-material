@@ -2,7 +2,10 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {MatButtonModule, MatGridListModule, MatIconModule, MatListModule, MatMenuModule, MatToolbarModule} from '@angular/material';
+import {
+  MatButtonModule, MatFormFieldModule, MatGridListModule, MatIconModule, MatInputModule, MatListModule, MatMenuModule,
+  MatToolbarModule
+} from '@angular/material';
 import {RouterModule, Routes} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {ChatsService} from '../services/chats.service';
@@ -36,6 +39,9 @@ const routes: Routes = [
     MatIconModule,
     MatButtonModule,
     MatListModule,
+    MatGridListModule,
+    MatInputModule,
+    MatFormFieldModule,
     MatGridListModule,
     // Routing
     RouterModule.forChild(routes),

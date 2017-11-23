@@ -15,16 +15,17 @@ import {ChatsService} from '../../../services/chats.service';
       <div class="title">New group</div>
     </app-toolbar>
 
-    <app-users-list *ngIf="!recipientIds" [users$]="users$" [multipleSelection]="true"
+    <app-users-list *ngIf="!recipientIds.length" [users$]="users$" [multipleSelection]="true"
                     (selectUsers)="selectUsers($event)"></app-users-list>
-    <app-new-group-details *ngIf="recipientIds" (groupDetails)="addGroup($event)"></app-new-group-details>
+    <app-new-group-details *ngIf="recipientIds.length" [users]="getSelectedUsers()"
+                           (groupDetails)="addGroup($event)"></app-new-group-details>
   `,
   styleUrls: ['new-group.component.scss'],
 })
 export class NewGroupComponent implements OnInit {
   users$: Observable<GetUsers.Users[]>;
   users: GetUsers.Users[];
-  recipientIds: string[];
+  recipientIds: string[] = [];
 
   constructor(private apollo: Apollo,
               private router: Router,
@@ -37,11 +38,19 @@ export class NewGroupComponent implements OnInit {
   }
 
   goBack() {
-    this.location.back();
+    if (this.recipientIds) {
+      this.recipientIds = [];
+    } else {
+      this.location.back();
+    }
   }
 
   selectUsers(recipientIds: string[]) {
     this.recipientIds = recipientIds;
+  }
+
+  getSelectedUsers() {
+    return this.users.filter(user => this.recipientIds.includes(user.id));
   }
 
   addGroup(groupName: string) {
