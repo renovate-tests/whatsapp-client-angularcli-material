@@ -38,7 +38,7 @@ export class NewGroupComponent implements OnInit {
   }
 
   goBack() {
-    if (this.recipientIds) {
+    if (this.recipientIds.length) {
       this.recipientIds = [];
     } else {
       this.location.back();

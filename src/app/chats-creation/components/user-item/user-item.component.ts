@@ -17,7 +17,7 @@ export class UserItemComponent {
   @Input()
   user: GetUsers.Users;
   @Input()
-  selected: false;
+  selected = false;
 
   @Output()
   select = new EventEmitter<string>();

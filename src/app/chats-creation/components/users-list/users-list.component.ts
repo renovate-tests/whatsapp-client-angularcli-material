@@ -53,7 +53,7 @@ export class UsersListComponent implements OnInit {
   }
 
   confirmSelection() {
-    if (this.selectedUserIds) {
+    if (this.selectedUserIds.length) {
       this.selectUsers.emit(this.selectedUserIds.filter(userId => this.users.find(user => user.id === userId)));
     }
   }

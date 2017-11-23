@@ -1,21 +1,21 @@
 :host {
-  display: block;
+  display: flex;
 }
 
-.container {
-  display: flex;
+.message {
+  max-width: 75%;
+  background-color: lightgoldenrodyellow;
 
-  .message-row {
-    max-width: 75%;
-    background-color: lightgoldenrodyellow;
+  &.mine {
+    background-color: lightcyan;
+    margin-left: auto;
+  }
 
-    &.mine {
-      background-color: lightcyan;
-      margin-left: auto;
-    }
+  &.selected {
+    background-color: lightblue;
+  }
 
-    .message-sender {
-      font-size: small;
-    }
+  .message-sender {
+    font-size: small;
   }
 }
