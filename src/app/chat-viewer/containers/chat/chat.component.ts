@@ -16,7 +16,7 @@ import {combineLatest} from 'rxjs/observable/combineLatest';
       <div class="title">{{ title$ | async }}</div>
     </app-toolbar>
     <div class="container">
-      <app-messages-list [messages$]="messages$" [isGroup]="isGroup$ | async"></app-messages-list>
+      <app-messages-list [messages$]="messages$" [isGroup]="isGroup$ | async" (selectMessages)="deleteMessages($event)"></app-messages-list>
     <app-new-message (newMessage)="addMessage($event)" [disabled]="optimisticUI"></app-new-message>
     </div>
   `,
@@ -25,6 +25,7 @@ import {combineLatest} from 'rxjs/observable/combineLatest';
 export class ChatComponent implements OnInit {
   chatId: string;
   messages$: Observable<GetChat.Messages[]>;
+  messages: GetChat.Messages[];
   title$: Observable<string>;
   isGroup$: Observable<boolean>;
   optimisticUI: boolean;
@@ -56,6 +57,7 @@ export class ChatComponent implements OnInit {
         }
 
         this.messages$ = this.chatsService.getChat(chatId, this.optimisticUI).messages$;
+        this.messages$.subscribe(messages => this.messages = messages);
         this.title$ = this.chatsService.getChat(chatId, this.optimisticUI).title$;
         this.isGroup$ = this.chatsService.getChat(chatId, this.optimisticUI).isGroup$;
       });
@@ -67,5 +69,9 @@ export class ChatComponent implements OnInit {
 
   addMessage(content: string) {
     this.chatsService.addMessage(this.chatId, content).subscribe();
+  }
+
+  deleteMessages(messageIds: string[]) {
+    this.chatsService.removeMessages(this.chatId, this.messages, messageIds).subscribe();
   }
 }

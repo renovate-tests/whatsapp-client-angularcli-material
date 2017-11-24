@@ -51,7 +51,7 @@ export interface Mutation {
   addGroup?: Chat | null; 
   removeChat?: boolean | null; 
   addMessage?: Message | null; 
-  removeMessages?: boolean | null; 
+  removeMessages?: string[] | null; 
   addMembers?: boolean | null; 
   removeMembers?: boolean | null; 
   addAdmins?: boolean | null; 
@@ -80,7 +80,7 @@ export interface AddMessageMutationArgs {
 }
 export interface RemoveMessagesMutationArgs {
   chatId: string; 
-  messageIds: string[]; 
+  messageIds?: string[] | null; 
   all?: boolean | null; 
 }
 export interface AddMembersMutationArgs {
@@ -269,5 +269,25 @@ export namespace GetUsers {
     id: string; 
     name?: string | null; 
     picture?: string | null; 
+  } 
+}
+export namespace RemoveAllMessages {
+  export type Variables = {
+    chatId: string;
+    all?: boolean | null;
+  }
+
+  export type Mutation = {
+    removeMessages?: string[] | null; 
+  } 
+}
+export namespace RemoveMessages {
+  export type Variables = {
+    chatId: string;
+    messageIds?: string[] | null;
+  }
+
+  export type Mutation = {
+    removeMessages?: string[] | null; 
   } 
 }
