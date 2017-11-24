@@ -10,8 +10,12 @@
   justify-content: space-between;
   align-items: center;
 
+  &.selected {
+    background-color: lightblue;
+  }
+
   .chat-recipient {
     display: flex;
-    width: 50%;
+    width: 60%;
   }
 }

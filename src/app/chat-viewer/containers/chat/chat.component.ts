@@ -2,7 +2,6 @@ import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Apollo} from 'apollo-angular';
 import {GetChat} from '../../../../types';
-import {Observable} from 'rxjs/Observable';
 import {ChatsService} from '../../../services/chats.service';
 import {Location} from '@angular/common';
 import {combineLatest} from 'rxjs/observable/combineLatest';
@@ -13,10 +12,10 @@ import {combineLatest} from 'rxjs/observable/combineLatest';
       <button class="navigation" mat-button (click)="goToChats()">
         <mat-icon aria-label="Icon-button with an arrow back icon">arrow_back</mat-icon>
       </button>
-      <div class="title">{{ title$ | async }}</div>
+      <div class="title">{{ name }}</div>
     </app-toolbar>
     <div class="container">
-      <app-messages-list [messages$]="messages$" [isGroup]="isGroup$ | async" (selectMessages)="deleteMessages($event)"></app-messages-list>
+      <app-messages-list [messages]="messages" [isGroup]="isGroup" (remove)="deleteMessages($event)"></app-messages-list>
     <app-new-message (newMessage)="addMessage($event)" [disabled]="optimisticUI"></app-new-message>
     </div>
   `,
@@ -24,10 +23,9 @@ import {combineLatest} from 'rxjs/observable/combineLatest';
 })
 export class ChatComponent implements OnInit {
   chatId: string;
-  messages$: Observable<GetChat.Messages[]>;
   messages: GetChat.Messages[];
-  title$: Observable<string>;
-  isGroup$: Observable<boolean>;
+  name: string;
+  isGroup: boolean;
   optimisticUI: boolean;
 
   constructor(private apollo: Apollo,
@@ -56,10 +54,11 @@ export class ChatComponent implements OnInit {
           });
         }
 
-        this.messages$ = this.chatsService.getChat(chatId, this.optimisticUI).messages$;
-        this.messages$.subscribe(messages => this.messages = messages);
-        this.title$ = this.chatsService.getChat(chatId, this.optimisticUI).title$;
-        this.isGroup$ = this.chatsService.getChat(chatId, this.optimisticUI).isGroup$;
+        this.chatsService.getChat(chatId, this.optimisticUI).chat$.subscribe(chat => {
+          this.messages = chat.messages;
+          this.name = chat.name;
+          this.isGroup = chat.isGroup;
+        });
       });
   }
 

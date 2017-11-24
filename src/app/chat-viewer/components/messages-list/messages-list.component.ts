@@ -1,12 +1,11 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {GetChat} from '../../../../types';
-import {Observable} from 'rxjs/Observable';
 
 @Component({
   selector: 'app-messages-list',
   template: `
     <mat-list>
-      <mat-list-item *ngFor="let message of messages$ | async">
+      <mat-list-item *ngFor="let message of messages">
         <app-message-item [message]="message" [isGroup]="isGroup"
                           [selected]="isSelected(message.id)" [selecting]="selecting" (select)="selectMessage($event)"></app-message-item>
       </mat-list-item>
@@ -19,9 +18,8 @@ import {Observable} from 'rxjs/Observable';
   `,
   styleUrls: ['messages-list.component.scss'],
 })
-export class MessagesListComponent implements OnInit {
+export class MessagesListComponent {
   @Input()
-  messages$: Observable<GetChat.Messages[]>;
   messages: GetChat.Messages[];
 
   @Input()
@@ -30,15 +28,9 @@ export class MessagesListComponent implements OnInit {
   selectedMessageIds: string[] = [];
 
   @Output()
-  selectMessages = new EventEmitter<string[]>();
+  remove = new EventEmitter<string[]>();
 
   selecting = false;
-
-  ngOnInit() {
-    this.messages$.subscribe(messages => {
-      this.messages = messages;
-    });
-  }
 
   isSelected(id: string) {
     return this.selectedMessageIds.includes(id);
@@ -46,7 +38,7 @@ export class MessagesListComponent implements OnInit {
 
   selectMessage(messageId: string) {
     if (this.selectedMessageIds.includes(messageId)) {
-      this.selectedMessageIds = this.selectedMessageIds.filter(selectedUserId => selectedUserId !== messageId);
+      this.selectedMessageIds = this.selectedMessageIds.filter(selectedMessageId => selectedMessageId !== messageId);
     } else {
       this.selectedMessageIds = this.selectedMessageIds.concat(messageId);
     }
@@ -55,7 +47,7 @@ export class MessagesListComponent implements OnInit {
 
   confirmSelection() {
     if (this.selectedMessageIds.length) {
-      this.selectMessages.emit(this.selectedMessageIds.filter(messageId => this.messages.find(message => message.id === messageId)));
+      this.remove.emit(this.selectedMessageIds.filter(messageId => this.messages.find(message => message.id === messageId)));
       this.selectedMessageIds = [];
       this.selecting = false;
     }

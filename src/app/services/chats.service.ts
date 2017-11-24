@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {Apollo, QueryRef} from 'apollo-angular';
 import {getChatsQuery} from '../../graphql/getChats.query';
-import {AddChat, AddGroup, AddMessage, GetChat, GetChats, GetUsers, RemoveAllMessages, RemoveMessages} from '../../types';
+import {AddChat, AddGroup, AddMessage, GetChat, GetChats, GetUsers, RemoveAllMessages, RemoveChat, RemoveMessages} from '../../types';
 import {getUsersQuery} from '../../graphql/getUsers.query';
 import {ApolloQueryResult} from 'apollo-client';
 import {concat, map, share, switchMap} from 'rxjs/operators';
@@ -17,6 +17,7 @@ import {addGroupMutation} from '../../graphql/addGroup.mutation';
 import {removeMessagesMutation} from '../../graphql/removeMessages.mutation';
 import {removeAllMessagesMutation} from '../../graphql/removeAllMessages.mutation';
 import {DocumentNode} from 'graphql';
+import {removeChatMutation} from '../../graphql/removeChat.mutation';
 
 const currentUserId = '1';
 const currentUserName = 'Ethan Gonzalez';
@@ -177,6 +178,31 @@ export class ChatsService {
       },
     }).pipe(share());
     return this.addChat$;
+  }
+
+  removeChat(chatId: string) {
+    return this.apollo.mutate({
+      mutation: removeChatMutation,
+      variables: <RemoveChat.Variables>{
+        chatId,
+      },
+      optimisticResponse: {
+        __typename: 'Mutation',
+        removeChat: chatId,
+      },
+      update: (store, { data: { removeChat } }) => {
+        // Read the data from our cache for this query.
+        const {chats}: GetChats.Query = store.readQuery({ query: getChatsQuery });
+        // Remove the chat (mutable)
+        for (const index of chats.keys()) {
+          if (chats[index].id === removeChat) {
+            chats.splice(index, 1);
+          }
+        }
+        // Write our data back to the cache.
+        store.writeQuery({ query: getChatsQuery, data: {chats} });
+      },
+    });
   }
 
   // Checks if the chat is listed for the current user and returns the id

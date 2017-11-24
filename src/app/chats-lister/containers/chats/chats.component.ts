@@ -1,10 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {Apollo} from 'apollo-angular';
 import {Observable} from 'rxjs/Observable';
-import { map } from 'rxjs/operators';
-import {ApolloQueryResult} from 'apollo-client';
 import {GetChats} from '../../../../types';
-import {getChatsQuery} from '../../../../graphql/getChats.query';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ChatsService} from '../../../services/chats.service';
 
@@ -32,9 +29,10 @@ import {ChatsService} from '../../../services/chats.service';
       </button>
     </mat-menu>
 
-    <app-chats-list [chats$]="chats$" (view)="goToChat($event)"></app-chats-list>
+    <app-chats-list [chats]="chats$ | async" (view)="goToChat($event)"
+                    (isSelecting)="selecting = $event" (remove)="deleteChats($event)"></app-chats-list>
 
-    <button class="new-chat" mat-fab color="primary" (click)="goToUsers()">
+    <button *ngIf="!selecting" class="chat-button" mat-fab color="primary" (click)="goToUsers()">
       <mat-icon aria-label="Icon-button with a + icon">add</mat-icon>
     </button>
   `,
@@ -42,6 +40,7 @@ import {ChatsService} from '../../../services/chats.service';
 })
 export class ChatsComponent implements OnInit {
   chats$: Observable<GetChats.Chats[]>;
+  selecting = false;
 
   constructor(private apollo: Apollo,
               private route: ActivatedRoute,
@@ -58,5 +57,11 @@ export class ChatsComponent implements OnInit {
 
   goToUsers() {
     this.router.navigate(['/new-chat']);
+  }
+
+  deleteChats(chatIds: string[]) {
+    chatIds.forEach(chatId => {
+      this.chatsService.removeChat(chatId).subscribe();
+    });
   }
 }
