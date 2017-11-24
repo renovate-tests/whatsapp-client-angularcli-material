@@ -29,13 +29,8 @@ export class MessageItemComponent {
   select = new EventEmitter<string>();
 
   emitSelected({type}) {
-    console.log(type);
-    if (this.selecting) {
+    if (this.selecting || type === 'press') {
         this.select.emit(this.message.id);
-    } else {
-      if (type === 'press') {
-        this.select.emit(this.message.id);
-      }
     }
   }
 }
