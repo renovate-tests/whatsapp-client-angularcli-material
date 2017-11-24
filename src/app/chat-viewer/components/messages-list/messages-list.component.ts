@@ -8,7 +8,7 @@ import {Observable} from 'rxjs/Observable';
     <mat-list>
       <mat-list-item *ngFor="let message of messages$ | async">
         <app-message-item [message]="message" [isGroup]="isGroup"
-                          [selected]="isSelected(message.id)" (select)="selectMessage($event)"></app-message-item>
+                          [selected]="isSelected(message.id)" [selecting]="selecting" (select)="selectMessage($event)"></app-message-item>
       </mat-list-item>
     </mat-list>
 
@@ -32,6 +32,8 @@ export class MessagesListComponent implements OnInit {
   @Output()
   selectMessages = new EventEmitter<string[]>();
 
+  selecting = false;
+
   ngOnInit() {
     this.messages$.subscribe(messages => {
       this.messages = messages;
@@ -48,12 +50,14 @@ export class MessagesListComponent implements OnInit {
     } else {
       this.selectedMessageIds = this.selectedMessageIds.concat(messageId);
     }
-    console.log(this.selectedMessageIds);
+    this.selecting = !!this.selectedMessageIds.length;
   }
 
   confirmSelection() {
     if (this.selectedMessageIds.length) {
       this.selectMessages.emit(this.selectedMessageIds.filter(messageId => this.messages.find(message => message.id === messageId)));
+      this.selectedMessageIds = [];
+      this.selecting = false;
     }
   }
 }
