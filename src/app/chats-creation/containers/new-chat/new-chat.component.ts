@@ -22,12 +22,12 @@ import {ChatsService} from '../../../services/chats.service';
       <div>New group</div>
     </div>
 
-    <app-users-list [users$]="users$" (selectUsers)="addChat($event)"></app-users-list>
+    <app-users-list [items]="users"
+                    appSelectableList="single" (single)="addChat($event)"></app-users-list>
   `,
   styleUrls: ['new-chat.component.scss'],
 })
 export class NewChatComponent implements OnInit {
-  users$: Observable<GetUsers.Users[]>;
   users: GetUsers.Users[];
 
   constructor(private apollo: Apollo,
@@ -36,8 +36,7 @@ export class NewChatComponent implements OnInit {
               private chatsService: ChatsService) {}
 
   ngOnInit () {
-    this.users$ = this.chatsService.getUsers().users$;
-    this.users$.subscribe(users => this.users = users);
+    this.chatsService.getUsers().users$.subscribe(users => this.users = users);
   }
 
   goBack() {
@@ -48,7 +47,7 @@ export class NewChatComponent implements OnInit {
     this.router.navigate(['/new-group']);
   }
 
-  addChat([recipientId]: string[]) {
+  addChat(recipientId: string) {
     const chatId = this.chatsService.getChatId(recipientId);
     if (chatId) {
       // Chat is already listed for the current user

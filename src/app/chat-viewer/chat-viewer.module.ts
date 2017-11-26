@@ -11,6 +11,7 @@ import {ChatComponent} from './containers/chat/chat.component';
 import {MessagesListComponent} from './components/messages-list/messages-list.component';
 import {MessageItemComponent} from './components/message-item/message-item.component';
 import {NewMessageComponent} from './components/new-message/new-message.component';
+import {SelectableListModule} from '../selectable-list/selectable-list-module';
 
 const routes: Routes = [
   {
@@ -44,6 +45,7 @@ const routes: Routes = [
     FormsModule,
     // Feature modules
     ToolbarModule,
+    SelectableListModule,
   ],
   providers: [
     ChatsService,

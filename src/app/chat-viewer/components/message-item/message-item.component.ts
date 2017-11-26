@@ -1,36 +1,22 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {Component, Input} from '@angular/core';
 import {GetChat} from '../../../../types';
 
 @Component({
   selector: 'app-message-item',
   template: `
-      <div class="message" (press)="emitSelected($event)" (tap)="emitSelected($event)"
-           [ngClass]="{'mine': message.ownership, selected: selected}">
-        <div *ngIf="isGroup && !message.ownership" class="message-sender">{{ message.sender.name }}</div>
-        <div>{{ message.content }}</div>
-      </div>
+    <div class="message"
+         [ngClass]="{'mine': message.ownership, selected: selected}">
+      <div *ngIf="isGroup && !message.ownership" class="message-sender">{{ message.sender.name }}</div>
+      <div>{{ message.content }}</div>
+    </div>
   `,
   styleUrls: ['message-item.component.scss'],
 })
 export class MessageItemComponent {
-  @Input()
+  // tslint:disable-next-line:no-input-rename
+  @Input('item')
   message: GetChat.Messages;
 
   @Input()
   isGroup: boolean;
-
-  @Input()
-  selected = false;
-
-  @Input()
-  selecting = false;
-
-  @Output()
-  select = new EventEmitter<string>();
-
-  emitSelected({type}) {
-    if (this.selecting || type === 'press') {
-        this.select.emit(this.message.id);
-    }
-  }
 }

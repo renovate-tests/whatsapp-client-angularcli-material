@@ -2,7 +2,6 @@ import {Component, OnInit} from '@angular/core';
 import {Apollo} from 'apollo-angular';
 import {Location} from '@angular/common';
 import {Router} from '@angular/router';
-import {Observable} from 'rxjs/Observable';
 import {GetUsers} from '../../../../types';
 import {ChatsService} from '../../../services/chats.service';
 
@@ -15,15 +14,14 @@ import {ChatsService} from '../../../services/chats.service';
       <div class="title">New group</div>
     </app-toolbar>
 
-    <app-users-list *ngIf="!recipientIds.length" [users$]="users$" [multipleSelection]="true"
-                    (selectUsers)="selectUsers($event)"></app-users-list>
+    <app-users-list *ngIf="!recipientIds.length" [items]="users"
+                    appSelectableList="multiple_tap" (multiple)="selectUsers($event)"></app-users-list>
     <app-new-group-details *ngIf="recipientIds.length" [users]="getSelectedUsers()"
                            (groupDetails)="addGroup($event)"></app-new-group-details>
   `,
   styleUrls: ['new-group.component.scss'],
 })
 export class NewGroupComponent implements OnInit {
-  users$: Observable<GetUsers.Users[]>;
   users: GetUsers.Users[];
   recipientIds: string[] = [];
 
@@ -33,8 +31,7 @@ export class NewGroupComponent implements OnInit {
               private chatsService: ChatsService) {}
 
   ngOnInit () {
-    this.users$ = this.chatsService.getUsers().users$;
-    this.users$.subscribe(users => this.users = users);
+    this.chatsService.getUsers().users$.subscribe(users => this.users = users);
   }
 
   goBack() {
@@ -46,6 +43,7 @@ export class NewGroupComponent implements OnInit {
   }
 
   selectUsers(recipientIds: string[]) {
+    console.log(recipientIds);
     this.recipientIds = recipientIds;
   }
 

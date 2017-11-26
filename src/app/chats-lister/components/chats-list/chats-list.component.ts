@@ -6,20 +6,23 @@ import {GetChats} from '../../../../types';
   template: `
     <mat-list>
       <mat-list-item *ngFor="let chat of chats">
-        <app-chat-item [chat]="chat" (view)="goToChat($event)"
-                       [selected]="isSelected(chat.id)" [selecting]="selecting" (select)="selectChat($event)"></app-chat-item>
+        <app-chat-item [item]="chat"
+                       appSelectableItem></app-chat-item>
+        <!--[selected]="isSelected(chat.id)" [selecting]="selecting"-->
+        <!--(single)="goToChat($event)" (multiple)="selectChat($event)"-->
       </mat-list-item>
     </mat-list>
 
-    <button *ngIf="selectedChatIds.length" class="confirm-deletion" mat-fab color="primary"
+    <!--<button *ngIf="selectedChatIds.length" class="confirm-deletion" mat-fab color="primary"
             (click)="confirmSelection()">
       <mat-icon aria-label="Icon-button with a + icon">delete</mat-icon>
-    </button>
+    </button>-->
   `,
   styleUrls: ['chats-list.component.scss'],
 })
 export class ChatsListComponent {
-  @Input()
+  // tslint:disable-next-line:no-input-rename
+  @Input('items')
   chats: GetChats.Chats[];
 
   @Output()
@@ -30,7 +33,7 @@ export class ChatsListComponent {
   @Output()
   remove = new EventEmitter<string[]>();
 
-  selecting = false;
+  // selecting = false;
 
   @Output()
   isSelecting = new EventEmitter<boolean>();
@@ -39,11 +42,11 @@ export class ChatsListComponent {
     this.view.emit(chatId);
   }
 
-  isSelected(id: string) {
+  /*isSelected(id: string) {
     return this.selectedChatIds.includes(id);
-  }
+  }*/
 
-  selectChat(chatId: string) {
+  /*selectChat(chatId: string) {
     if (this.selectedChatIds.includes(chatId)) {
       this.selectedChatIds = this.selectedChatIds.filter(selectedChatId => selectedChatId !== chatId);
     } else {
@@ -62,5 +65,5 @@ export class ChatsListComponent {
       this.selecting = false;
       this.isSelecting.emit(false);
     }
-  }
+  }*/
 }

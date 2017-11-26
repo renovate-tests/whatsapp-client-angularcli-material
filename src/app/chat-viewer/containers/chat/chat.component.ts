@@ -15,8 +15,9 @@ import {combineLatest} from 'rxjs/observable/combineLatest';
       <div class="title">{{ name }}</div>
     </app-toolbar>
     <div class="container">
-      <app-messages-list [messages]="messages" [isGroup]="isGroup" (remove)="deleteMessages($event)"></app-messages-list>
-    <app-new-message (newMessage)="addMessage($event)" [disabled]="optimisticUI"></app-new-message>
+      <app-messages-list [items]="messages" [isGroup]="isGroup"
+                         appSelectableList="multiple_press" (multiple)="deleteMessages($event)"></app-messages-list>
+      <app-new-message (newMessage)="addMessage($event)" [disabled]="optimisticUI"></app-new-message>
     </div>
   `,
   styleUrls: ['./chat.component.scss']
@@ -32,7 +33,8 @@ export class ChatComponent implements OnInit {
               private route: ActivatedRoute,
               private router: Router,
               private location: Location,
-              private chatsService: ChatsService) {}
+              private chatsService: ChatsService) {
+  }
 
   ngOnInit() {
     combineLatest(this.route.params, this.route.queryParams,

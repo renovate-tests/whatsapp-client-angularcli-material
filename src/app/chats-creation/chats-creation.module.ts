@@ -15,6 +15,7 @@ import {NewGroupComponent} from './containers/new-group/new-group.component';
 import {NewChatComponent} from './containers/new-chat/new-chat.component';
 import {ToolbarModule} from '../toolbar/toolbar.module';
 import {NewGroupDetailsComponent} from './components/new-group-details/new-group-details.component';
+import {SelectableListModule} from '../selectable-list/selectable-list-module';
 
 const routes: Routes = [
   {path: 'new-chat', component: NewChatComponent},
@@ -49,6 +50,7 @@ const routes: Routes = [
     FormsModule,
     // Feature modules
     ToolbarModule,
+    SelectableListModule,
   ],
   providers: [
     ChatsService,

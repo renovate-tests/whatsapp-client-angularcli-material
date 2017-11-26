@@ -138,11 +138,11 @@ export class ChatsService {
       },
       update: (store, { data: { addChat } }) => {
         // Read the data from our cache for this query.
-        const data: GetChats.Query = store.readQuery({ query: getChatsQuery });
+        const {chats}: GetChats.Query = store.readQuery({ query: getChatsQuery });
         // Add our comment from the mutation to the end.
-        data.chats.push(addChat);
+        chats.push(addChat);
         // Write our data back to the cache.
-        store.writeQuery({ query: getChatsQuery, data });
+        store.writeQuery({ query: getChatsQuery, data: {chats} });
       },
     }).pipe(share());
     return this.addChat$;
@@ -170,11 +170,11 @@ export class ChatsService {
       },
       update: (store, { data: { addGroup } }) => {
         // Read the data from our cache for this query.
-        const data: GetChats.Query = store.readQuery({ query: getChatsQuery });
+        const {chats}: GetChats.Query = store.readQuery({ query: getChatsQuery });
         // Add our comment from the mutation to the end.
-        data.chats.push(addGroup);
+        chats.push(addGroup);
         // Write our data back to the cache.
-        store.writeQuery({ query: getChatsQuery, data });
+        store.writeQuery({ query: getChatsQuery, data: {chats} });
       },
     }).pipe(share());
     return this.addChat$;

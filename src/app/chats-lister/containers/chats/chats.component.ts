@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, HostListener, OnInit} from '@angular/core';
 import {Apollo} from 'apollo-angular';
 import {Observable} from 'rxjs/Observable';
 import {GetChats} from '../../../../types';
@@ -29,10 +29,11 @@ import {ChatsService} from '../../../services/chats.service';
       </button>
     </mat-menu>
 
-    <app-chats-list [chats]="chats$ | async" (view)="goToChat($event)"
-                    (isSelecting)="selecting = $event" (remove)="deleteChats($event)"></app-chats-list>
+    <app-chats-list [items]="chats$ | async"
+                    appSelectableList="both"
+                    (single)="goToChat($event)" (multiple)="deleteChats($event)" (isSelecting)="isSelecting = $event"></app-chats-list>
 
-    <button *ngIf="!selecting" class="chat-button" mat-fab color="primary" (click)="goToUsers()">
+    <button *ngIf="!isSelecting" class="chat-button" mat-fab color="primary" (click)="goToUsers()">
       <mat-icon aria-label="Icon-button with a + icon">add</mat-icon>
     </button>
   `,
@@ -40,12 +41,13 @@ import {ChatsService} from '../../../services/chats.service';
 })
 export class ChatsComponent implements OnInit {
   chats$: Observable<GetChats.Chats[]>;
-  selecting = false;
+  isSelecting = false;
 
   constructor(private apollo: Apollo,
               private route: ActivatedRoute,
               private router: Router,
-              private chatsService: ChatsService) {}
+              private chatsService: ChatsService) {
+  }
 
   ngOnInit() {
     this.chats$ = this.chatsService.getChats().chats$;

@@ -4,7 +4,7 @@ import {GetUsers} from '../../../../types';
 @Component({
   selector: 'app-user-item',
   template: `
-    <button mat-menu-item (click)="emitSelected()" [ngClass]="{selected: selected}">
+    <button mat-menu-item>
       <div>
         <img [src]="user.picture" *ngIf="user.picture">
       </div>
@@ -14,15 +14,7 @@ import {GetUsers} from '../../../../types';
   styleUrls: ['user-item.component.scss']
 })
 export class UserItemComponent {
-  @Input()
+  // tslint:disable-next-line:no-input-rename
+  @Input('item')
   user: GetUsers.Users;
-  @Input()
-  selected = false;
-
-  @Output()
-  select = new EventEmitter<string>();
-
-  emitSelected() {
-    this.select.emit(this.user.id);
-  }
 }
