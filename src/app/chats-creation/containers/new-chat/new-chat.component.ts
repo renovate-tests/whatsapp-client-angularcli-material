@@ -23,7 +23,9 @@ import {ChatsService} from '../../../services/chats.service';
     </div>
 
     <app-users-list [items]="users"
-                    appSelectableList="single" (single)="addChat($event)"></app-users-list>
+                    appSelectableList="single" (single)="addChat($event)">
+      <app-confirm-selection #confirmSelection></app-confirm-selection>
+    </app-users-list>
   `,
   styleUrls: ['new-chat.component.scss'],
 })

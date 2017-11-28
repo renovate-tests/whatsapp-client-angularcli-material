@@ -1,4 +1,4 @@
-import {Component, HostListener, OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {Apollo} from 'apollo-angular';
 import {Observable} from 'rxjs/Observable';
 import {GetChats} from '../../../../types';
@@ -31,7 +31,9 @@ import {ChatsService} from '../../../services/chats.service';
 
     <app-chats-list [items]="chats$ | async"
                     appSelectableList="both"
-                    (single)="goToChat($event)" (multiple)="deleteChats($event)" (isSelecting)="isSelecting = $event"></app-chats-list>
+                    (single)="goToChat($event)" (multiple)="deleteChats($event)" (isSelecting)="isSelecting = $event">
+      <app-confirm-selection #confirmSelection></app-confirm-selection>
+    </app-chats-list>
 
     <button *ngIf="!isSelecting" class="chat-button" mat-fab color="primary" (click)="goToUsers()">
       <mat-icon aria-label="Icon-button with a + icon">add</mat-icon>

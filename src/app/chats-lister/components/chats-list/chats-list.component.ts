@@ -1,5 +1,6 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {Component, Input} from '@angular/core';
 import {GetChats} from '../../../../types';
+import {SelectableListDirective} from '../../../selectable-list/directive/selectable-list/selectable-list.directive';
 
 @Component({
   selector: 'app-chats-list',
@@ -12,6 +13,7 @@ import {GetChats} from '../../../../types';
         <!--(single)="goToChat($event)" (multiple)="selectChat($event)"-->
       </mat-list-item>
     </mat-list>
+    <ng-content *ngIf="selectableListDirective.selecting"></ng-content>
 
     <!--<button *ngIf="selectedChatIds.length" class="confirm-deletion" mat-fab color="primary"
             (click)="confirmSelection()">
@@ -25,7 +27,9 @@ export class ChatsListComponent {
   @Input('items')
   chats: GetChats.Chats[];
 
-  @Output()
+  constructor(public selectableListDirective: SelectableListDirective) {}
+
+  /*@Output()
   view = new EventEmitter<string>();
 
   selectedChatIds: string[] = [];
@@ -42,7 +46,7 @@ export class ChatsListComponent {
     this.view.emit(chatId);
   }
 
-  /*isSelected(id: string) {
+  isSelected(id: string) {
     return this.selectedChatIds.includes(id);
   }*/
 

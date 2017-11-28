@@ -12,6 +12,7 @@ import {MessagesListComponent} from './components/messages-list/messages-list.co
 import {MessageItemComponent} from './components/message-item/message-item.component';
 import {NewMessageComponent} from './components/new-message/new-message.component';
 import {SelectableListModule} from '../selectable-list/selectable-list-module';
+import {SharedModule} from '../shared/shared.module';
 
 const routes: Routes = [
   {
@@ -46,6 +47,7 @@ const routes: Routes = [
     // Feature modules
     ToolbarModule,
     SelectableListModule,
+    SharedModule,
   ],
   providers: [
     ChatsService,

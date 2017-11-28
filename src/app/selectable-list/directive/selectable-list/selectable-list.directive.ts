@@ -1,7 +1,8 @@
 import {
-  ComponentFactoryResolver, ComponentRef, Directive, ElementRef, EventEmitter, Inject, Input, OnDestroy, Output, Renderer2, ViewContainerRef
+  AfterContentInit,
+  ComponentFactoryResolver, ContentChild, Directive, ElementRef, EventEmitter, Inject, Input, OnDestroy, Output, Renderer2,
+  ViewContainerRef
 } from '@angular/core';
-import {ConfirmSelectionComponent} from '../../component/confirm-selection/confirm-selection.component';
 import {Subscription} from 'rxjs/Subscription';
 
 export class SelectableListService {
@@ -28,18 +29,15 @@ export enum Mode {
     }
   ],
 })
-export class SelectableListDirective implements OnDestroy {
-  component: ComponentRef<ConfirmSelectionComponent>;
+export class SelectableListDirective implements OnDestroy, AfterContentInit {
+  // component: ComponentRef<ConfirmSelectionComponent>;
   singleSubscription: Subscription;
   multipleSubscription: Subscription;
-  confirmSelectionSubscription: Subscription;
+  // confirmSelectionSubscription: Subscription;
+  clickListenerFn: () => void;
 
   set mode(value: Mode) {
     this.selectableListService.mode = value;
-  }
-
-  get mode(): Mode {
-    return this.selectableListService.mode;
   }
 
   // _selecting = false;
@@ -53,6 +51,7 @@ export class SelectableListDirective implements OnDestroy {
 
   // _selectedItemIds: string[] = [];
   set selectedItemIds(value: string[]) {
+    /* It would have been necessary if we didn't use content projection to project the confirmation button
     if (!this.selectableListService.selectedItemIds.length && value.length) {
       // Create dynamic component
       const confirmSelectionFactory = this.resolver.resolveComponentFactory(ConfirmSelectionComponent);
@@ -63,6 +62,7 @@ export class SelectableListDirective implements OnDestroy {
       this.confirmSelectionSubscription.unsubscribe();
       this.component.destroy();
     }
+    */
     this.selectableListService.selectedItemIds = value;
   }
 
@@ -102,6 +102,8 @@ export class SelectableListDirective implements OnDestroy {
   @Output()
   multiple = new EventEmitter<string[]>();
 
+  @ContentChild('confirmSelection', {read: ElementRef}) confirmButton: any;
+
   constructor(private el: ElementRef,
               private renderer: Renderer2,
               private view: ViewContainerRef,
@@ -111,9 +113,18 @@ export class SelectableListDirective implements OnDestroy {
     this.multipleSubscription = this.selectableListService.multiple.subscribe(id => this.selectItem(id));
   }
 
+  ngAfterContentInit() {
+    if (this.confirmButton) {
+      this.clickListenerFn = this.renderer.listen(this.confirmButton.nativeElement, 'click', () => this.confirmSelection());
+    }
+  }
+
   ngOnDestroy() {
     this.singleSubscription.unsubscribe();
     this.multipleSubscription.unsubscribe();
+    if (this.clickListenerFn) {
+      this.clickListenerFn();
+    }
   }
 
   /* Since we now use a service for inter-directive communication we don't need CustomEvent anymore
@@ -154,7 +165,7 @@ export class SelectableListDirective implements OnDestroy {
     } else {
       this.selectedItemIds = this.selectedItemIds.concat(itemId);
     }
-    if (this.mode !== Mode.multiple_tap && this.selecting !== !!this.selectedItemIds.length) {
+    if (this.selecting !== !!this.selectedItemIds.length) {
       this.selecting = !!this.selectedItemIds.length;
       this.isSelecting.emit(this.selecting);
     }

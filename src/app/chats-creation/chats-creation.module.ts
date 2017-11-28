@@ -16,6 +16,7 @@ import {NewChatComponent} from './containers/new-chat/new-chat.component';
 import {ToolbarModule} from '../toolbar/toolbar.module';
 import {NewGroupDetailsComponent} from './components/new-group-details/new-group-details.component';
 import {SelectableListModule} from '../selectable-list/selectable-list-module';
+import {SharedModule} from '../shared/shared.module';
 
 const routes: Routes = [
   {path: 'new-chat', component: NewChatComponent},
@@ -51,6 +52,7 @@ const routes: Routes = [
     // Feature modules
     ToolbarModule,
     SelectableListModule,
+    SharedModule,
   ],
   providers: [
     ChatsService,

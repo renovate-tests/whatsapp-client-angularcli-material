@@ -12,10 +12,6 @@ button {
   width: 100%;
   border: none;
 
-  &.selected {
-    background-color: lightblue;
-  }
-
   div:first-of-type {
     display: flex;
     justify-content: center;

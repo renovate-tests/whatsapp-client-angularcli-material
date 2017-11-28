@@ -1,6 +1,6 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, Input} from '@angular/core';
 import {GetUsers} from '../../../../types';
-import {Observable} from 'rxjs/Observable';
+import {SelectableListDirective} from '../../../selectable-list/directive/selectable-list/selectable-list.directive';
 
 @Component({
   selector: 'app-users-list',
@@ -11,6 +11,7 @@ import {Observable} from 'rxjs/Observable';
                        appSelectableItem></app-user-item>
       </mat-list-item>
     </mat-list>
+    <ng-content *ngIf="selectableListDirective.selecting"></ng-content>
   `,
   styleUrls: ['users-list.component.scss'],
 })
@@ -18,4 +19,6 @@ export class UsersListComponent {
   // tslint:disable-next-line:no-input-rename
   @Input('items')
   users: GetUsers.Users[];
+
+  constructor(public selectableListDirective: SelectableListDirective) {}
 }
