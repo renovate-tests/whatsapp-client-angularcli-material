@@ -109,6 +109,13 @@ export class SelectableListDirective implements OnDestroy, AfterContentInit {
               private view: ViewContainerRef,
               private resolver: ComponentFactoryResolver,
               @Inject('selectable-list-service') private selectableListService: SelectableListService) {
+    // Since services are singletons let's set some defaults
+    this.selectableListService.selecting = false;
+    this.selectableListService.selectedItemIds = [];
+    this.selectableListService.single = new EventEmitter<string>();
+    this.selectableListService.multiple = new EventEmitter<string>();
+    this.selectableListService.mode = Mode.single;
+
     this.singleSubscription = this.selectableListService.single.subscribe(id => this.single.emit(id));
     this.multipleSubscription = this.selectableListService.multiple.subscribe(id => this.selectItem(id));
   }
