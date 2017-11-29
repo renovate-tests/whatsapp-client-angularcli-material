@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, EventEmitter, OnInit} from '@angular/core';
 import {Apollo} from 'apollo-angular';
 import {Observable} from 'rxjs/Observable';
 import {GetChats} from '../../../../types';
@@ -29,10 +29,12 @@ import {ChatsService} from '../../../services/chats.service';
       </button>
     </mat-menu>
 
+    <button *ngIf="isSelecting" (click)="deleteChats(selectedItemIds)">CONFIRM</button>
     <app-chats-list [items]="chats$ | async"
                     appSelectableList="both"
-                    (single)="goToChat($event)" (multiple)="deleteChats($event)" (isSelecting)="isSelecting = $event">
-      <app-confirm-selection #confirmSelection></app-confirm-selection>
+                    (single)="goToChat($event)" (multiple)="deleteChats($event)" (isSelecting)="isSelecting = $event"
+                    [selectionConfirmed]="selectionConfirmed" (selectItemIds)="selectedItemIds = $event">
+      <!--<app-confirm-selection #confirmSelection></app-confirm-selection>-->
     </app-chats-list>
 
     <button *ngIf="!isSelecting" class="chat-button" mat-fab color="primary" (click)="goToUsers()">
@@ -44,6 +46,8 @@ import {ChatsService} from '../../../services/chats.service';
 export class ChatsComponent implements OnInit {
   chats$: Observable<GetChats.Chats[]>;
   isSelecting = false;
+  selectionConfirmed = new EventEmitter<void>();
+  selectedItemIds: string[] = [];
 
   constructor(private apollo: Apollo,
               private route: ActivatedRoute,
@@ -67,5 +71,6 @@ export class ChatsComponent implements OnInit {
     chatIds.forEach(chatId => {
       this.chatsService.removeChat(chatId).subscribe();
     });
+    this.selectionConfirmed.emit();
   }
 }

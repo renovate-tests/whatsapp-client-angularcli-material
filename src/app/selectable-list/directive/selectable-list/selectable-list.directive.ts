@@ -93,6 +93,9 @@ export class SelectableListDirective implements OnDestroy, AfterContentInit {
   @Input()
   items: { id: string }[];
 
+  @Input()
+  selectionConfirmed: EventEmitter<void>;
+
   @Output()
   isSelecting = new EventEmitter<boolean>();
 
@@ -101,6 +104,9 @@ export class SelectableListDirective implements OnDestroy, AfterContentInit {
 
   @Output()
   multiple = new EventEmitter<string[]>();
+
+  @Output()
+  selectItemIds = new EventEmitter<string[]>();
 
   @ContentChild('confirmSelection', {read: ElementRef}) confirmButton: any;
 
@@ -117,6 +123,13 @@ export class SelectableListDirective implements OnDestroy, AfterContentInit {
     if (this.confirmButton) {
       this.clickListenerFn = this.renderer.listen(this.confirmButton.nativeElement, 'click', () => this.confirmSelection());
     }
+    if (this.selectionConfirmed) {
+      this.selectionConfirmed.subscribe(() => {
+        this.selectedItemIds = [];
+        this.selecting = false;
+        this.isSelecting.emit(false);
+      });
+    }
   }
 
   ngOnDestroy() {
@@ -124,6 +137,9 @@ export class SelectableListDirective implements OnDestroy, AfterContentInit {
     this.multipleSubscription.unsubscribe();
     if (this.clickListenerFn) {
       this.clickListenerFn();
+    }
+    if (this.selectionConfirmed) {
+      this.selectionConfirmed.unsubscribe();
     }
   }
 
@@ -169,11 +185,15 @@ export class SelectableListDirective implements OnDestroy, AfterContentInit {
       this.selecting = !!this.selectedItemIds.length;
       this.isSelecting.emit(this.selecting);
     }
+    if (this.selectionConfirmed) {
+      // Emit list for those who prefer to not project the confirmation button
+      this.selectItemIds.emit(this.selectedItemIds.filter(id => this.items.find(item => item.id === id)));
+    }
   }
 
   confirmSelection() {
     if (this.selectedItemIds.length) {
-      this.multiple.emit(this.selectedItemIds.filter(itemId => this.items.find(item => item.id === itemId)));
+      this.multiple.emit(this.selectedItemIds.filter(id => this.items.find(item => item.id === id)));
       this.selectedItemIds = [];
       this.selecting = false;
       this.isSelecting.emit(false);
