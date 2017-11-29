@@ -51,7 +51,7 @@ export class AppModule {
     });*/
 
     apollo.create({
-      link: httpLink.create({uri: 'http://localhost/graphql'}),
+      link: httpLink.create({uri: 'http://localhost:3000/graphql'}),
       // link: new WebSocketLink(client),
       cache: new InMemoryCache()
     });

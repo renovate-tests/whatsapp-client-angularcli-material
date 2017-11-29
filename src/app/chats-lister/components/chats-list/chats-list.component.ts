@@ -13,7 +13,7 @@ import {SelectableListDirective} from '../../../selectable-list/directive/select
         <!--(single)="goToChat($event)" (multiple)="selectChat($event)"-->
       </mat-list-item>
     </mat-list>
-    <!--<ng-content *ngIf="selectableListDirective.selecting"></ng-content>-->
+    <ng-content *ngIf="selectableListDirective.selecting"></ng-content>
 
     <!--<button *ngIf="selectedChatIds.length" class="confirm-deletion" mat-fab color="primary"
             (click)="confirmSelection()">
