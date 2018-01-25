@@ -12,11 +12,12 @@ import {MessageItemComponent} from './components/message-item/message-item.compo
 import {NewMessageComponent} from './components/new-message/new-message.component';
 import {SharedModule} from '../shared/shared.module';
 import {SelectableListModule} from 'ngx-selectable-list';
+import {AuthGuard} from '../shared/services/auth.guard';
 
 const routes: Routes = [
   {
     path: 'chat', children: [
-      {path: ':id', component: ChatComponent},
+      {path: ':id', canActivate: [AuthGuard], component: ChatComponent},
     ],
   },
 ];
@@ -49,6 +50,7 @@ const routes: Routes = [
   ],
   providers: [
     ChatsService,
+    AuthGuard,
   ],
 })
 export class ChatViewerModule {
