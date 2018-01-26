@@ -1,8 +1,9 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {FormBuilder, Validators} from '@angular/forms';
 // import {matchOtherValidator} from '@moebius/ng-validators';
 import {Router} from '@angular/router';
+import {WebSocketLink} from 'apollo-link-ws';
 
 @Component({
   selector: 'app-login',
@@ -68,7 +69,7 @@ import {Router} from '@angular/router';
   `,
   styleUrls: ['./login.component.scss'],
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   signInForm = this.fb.group({
     username: [null, [
       Validators.required,
@@ -97,6 +98,18 @@ export class LoginComponent {
   constructor(private http: HttpClient,
               private fb: FormBuilder,
               private router: Router) {}
+
+  ngOnInit() {
+    /*const wsLink = new WebSocketLink({
+      uri: `ws://localhost:3000/`,
+      options: {
+        reconnect: true,
+        connectionParams: {
+          authToken: localStorage.getItem('Authorization'),
+        },
+      }
+    });*/
+  }
 
   signIn() {
     const auth = `Basic ${btoa(`${this.signInForm.value.username}:${this.signInForm.value.password}`)}`;
