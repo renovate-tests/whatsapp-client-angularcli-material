@@ -2,29 +2,38 @@ import gql from 'graphql-tag';
 
 // We use the gql tag to parse our query string into a query document
 export const getChatsQuery = gql`
-  query GetChats {
+  query GetChats($amount: Int) {
     chats {
-      id,
       __typename,
+      id,
       name,
       picture,
-      userIds,
-      unreadMessages,
-      lastMessage {
-        id,
+      allTimeMembers {
         __typename,
-        senderId,
+        id,
+      },
+      unreadMessages,
+      messages(amount: $amount) {
+        __typename,
+        id,
         sender {
-          id,
           __typename,
+          id,
           name,
         },
         content,
         createdAt,
         type,
         recipients {
-          id,
           __typename,
+          user {
+            __typename,
+            id,
+          },
+          message {
+            __typename,
+            id,
+          },
           receivedAt,
           readAt,
         },

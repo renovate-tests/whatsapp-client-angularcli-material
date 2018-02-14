@@ -4,26 +4,32 @@ import gql from 'graphql-tag';
 export const getChatQuery = gql`
   query GetChat($chatId: ID!) {
     chat(chatId: $chatId) {
-      id,
       __typename,
+      id,
       name,
       picture,
       isGroup,
       messages {
-        id,
         __typename,
-        senderId,
+        id,
         sender {
-          id,
           __typename,
+          id,
           name,
         },
         content,
         createdAt,
         type,
         recipients {
-          id,
           __typename,
+          user {
+            __typename,
+            id,
+          },
+          message {
+            __typename,
+            id,
+          },
           receivedAt,
           readAt,
         },

@@ -4,15 +4,18 @@ import gql from 'graphql-tag';
 export const addGroupMutation = gql`
   mutation AddGroup($recipientIds: [ID!]!, $groupName: String!) {
     addGroup(recipientIds: $recipientIds, groupName: $groupName) {
-      id,
       __typename,
+      id,
       name,
       picture,
-      userIds,
-      unreadMessages,
-      lastMessage {
-        id,
+      allTimeMembers {
         __typename,
+        id,
+      },
+      unreadMessages,
+      messages {
+        __typename,
+        id,
         content,
       },
       isGroup,

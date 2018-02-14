@@ -13,6 +13,7 @@ import {NewMessageComponent} from './components/new-message/new-message.componen
 import {SharedModule} from '../shared/shared.module';
 import {SelectableListModule} from 'ngx-selectable-list';
 import {AuthGuard} from '../shared/services/auth.guard';
+import {OrderModule} from 'ngx-order-pipe';
 
 const routes: Routes = [
   {
@@ -47,6 +48,8 @@ const routes: Routes = [
     // Feature modules
     SharedModule,
     SelectableListModule,
+    // OderBy Pipe
+    OrderModule,
   ],
   providers: [
     ChatsService,

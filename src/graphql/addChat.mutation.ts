@@ -4,15 +4,18 @@ import gql from 'graphql-tag';
 export const addChatMutation = gql`
   mutation AddChat($recipientId: ID!) {
     addChat(recipientId: $recipientId) {
-      id,
       __typename,
+      id,
       name,
       picture,
-      userIds,
-      unreadMessages,
-      lastMessage {
-        id,
+      allTimeMembers {
         __typename,
+        id,
+      },
+      unreadMessages,
+      messages {
+        __typename,
+        id,
         content,
       },
       isGroup,

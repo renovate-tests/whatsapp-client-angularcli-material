@@ -17,11 +17,11 @@ export interface Chat {
   id: string; /* May be a chat or a group */
   name?: string | null; /* Computed for chats */
   picture?: string | null; /* Computed for chats */
-  userIds: string[]; /* All members, current and past ones. */
-  listingIds: string[]; /* Whoever gets the chat listed. For groups includes past members who still didn&#x27;t delete the group. */
-  memberIds: string[]; /* Actual members of the group (they are not the only ones who get the group listed). Null for chats. */
-  adminIds: string[]; /* Null for chats */
-  ownerId: string; /* If null the group is read-only. Null for chats. */
+  allTimeMembers: User[]; /* All members, current and past ones. */
+  listingMembers: User[]; /* Whoever gets the chat listed. For groups includes past members who still didn&#x27;t delete the group. */
+  actualGroupMembers: User[]; /* Actual members of the group (they are not the only ones who get the group listed). Null for chats. */
+  admins: User[]; /* Null for chats */
+  owner: User; /* If null the group is read-only. Null for chats. */
   messages: Message[]; 
   lastMessage?: Message | null; /* Computed property */
   unreadMessages: number; /* Computed property */
@@ -30,18 +30,19 @@ export interface Chat {
 
 export interface Message {
   id: string; 
-  senderId: string; 
   sender: User; 
+  chat: Chat; 
   content: string; 
   createdAt?: number | null; 
   type: number; /* FIXME: should return MessageType */
   recipients: Recipient[]; /* Whoever received the message */
-  holderIds: string[]; /* Whoever still holds a copy of the message. Cannot be null because the message gets deleted otherwise */
+  holders: User[]; /* Whoever still holds a copy of the message. Cannot be null because the message gets deleted otherwise */
   ownership: boolean; /* Computed property */
 }
 
 export interface Recipient {
-  id: string; /* The user id */
+  user: User; 
+  message: Message; 
   receivedAt?: number | null; 
   readAt?: number | null; 
 }
@@ -52,17 +53,25 @@ export interface Mutation {
   removeChat?: string | null; 
   addMessage?: Message | null; 
   removeMessages?: string[] | null; 
-  addMembers?: string[] | null; 
+  addMembers?: User[] | null; 
   removeMembers?: string[] | null; 
-  addAdmins?: string[] | null; 
+  addAdmins?: User[] | null; 
   removeAdmins?: string[] | null; 
   setGroupName?: string | null; 
   setGroupPicture?: string | null; 
   markAsReceived?: boolean | null; 
   markAsRead?: boolean | null; 
 }
+
+export interface Subscription {
+  messageAdded?: Message | null; 
+  chatAdded?: Chat | null; 
+}
 export interface ChatQueryArgs {
   chatId: string; 
+}
+export interface MessagesChatArgs {
+  amount?: number | null; 
 }
 export interface AddChatMutationArgs {
   recipientId: string; 
@@ -111,6 +120,9 @@ export interface MarkAsReceivedMutationArgs {
 export interface MarkAsReadMutationArgs {
   chatId: string; 
 }
+export interface MessageAddedSubscriptionArgs {
+  chatId?: string | null; 
+}
 
 export type MessageType = "TEXT" | "LOCATION" | "PICTURE";
 
@@ -127,13 +139,17 @@ export namespace AddChat {
     id: string; 
     name?: string | null; 
     picture?: string | null; 
-    userIds: string[]; 
+    allTimeMembers: AllTimeMembers[]; 
     unreadMessages: number; 
-    lastMessage?: LastMessage | null; 
+    messages: Messages[]; 
     isGroup: boolean; 
   } 
 
-  export type LastMessage = {
+  export type AllTimeMembers = {
+    id: string; 
+  } 
+
+  export type Messages = {
     id: string; 
     content: string; 
   } 
@@ -152,13 +168,17 @@ export namespace AddGroup {
     id: string; 
     name?: string | null; 
     picture?: string | null; 
-    userIds: string[]; 
+    allTimeMembers: AllTimeMembers[]; 
     unreadMessages: number; 
-    lastMessage?: LastMessage | null; 
+    messages: Messages[]; 
     isGroup: boolean; 
   } 
 
-  export type LastMessage = {
+  export type AllTimeMembers = {
+    id: string; 
+  } 
+
+  export type Messages = {
     id: string; 
     content: string; 
   } 
@@ -175,7 +195,6 @@ export namespace AddMessage {
 
   export type AddMessage = {
     id: string; 
-    senderId: string; 
     sender: Sender; 
     content: string; 
     createdAt?: number | null; 
@@ -190,9 +209,70 @@ export namespace AddMessage {
   } 
 
   export type Recipients = {
-    id: string; 
+    user: User; 
+    message: Message; 
     receivedAt?: number | null; 
     readAt?: number | null; 
+  } 
+
+  export type User = {
+    id: string; 
+  } 
+
+  export type Message = {
+    id: string; 
+  } 
+}
+export namespace ChatAdded {
+  export type Variables = {
+  }
+
+  export type Subscription = {
+    chatAdded?: ChatAdded | null; 
+  } 
+
+  export type ChatAdded = {
+    id: string; 
+    name?: string | null; 
+    picture?: string | null; 
+    allTimeMembers: AllTimeMembers[]; 
+    unreadMessages: number; 
+    messages: Messages[]; 
+    isGroup: boolean; 
+  } 
+
+  export type AllTimeMembers = {
+    id: string; 
+  } 
+
+  export type Messages = {
+    id: string; 
+    sender: Sender; 
+    content: string; 
+    createdAt?: number | null; 
+    type: number; 
+    recipients: Recipients[]; 
+    ownership: boolean; 
+  } 
+
+  export type Sender = {
+    id: string; 
+    name?: string | null; 
+  } 
+
+  export type Recipients = {
+    user: User; 
+    message: Message; 
+    receivedAt?: number | null; 
+    readAt?: number | null; 
+  } 
+
+  export type User = {
+    id: string; 
+  } 
+
+  export type Message = {
+    id: string; 
   } 
 }
 export namespace GetChat {
@@ -214,7 +294,6 @@ export namespace GetChat {
 
   export type Messages = {
     id: string; 
-    senderId: string; 
     sender: Sender; 
     content: string; 
     createdAt?: number | null; 
@@ -229,13 +308,23 @@ export namespace GetChat {
   } 
 
   export type Recipients = {
-    id: string; 
+    user: User; 
+    message: Message; 
     receivedAt?: number | null; 
     readAt?: number | null; 
+  } 
+
+  export type User = {
+    id: string; 
+  } 
+
+  export type Message = {
+    id: string; 
   } 
 }
 export namespace GetChats {
   export type Variables = {
+    amount?: number | null;
   }
 
   export type Query = {
@@ -246,15 +335,18 @@ export namespace GetChats {
     id: string; 
     name?: string | null; 
     picture?: string | null; 
-    userIds: string[]; 
+    allTimeMembers: AllTimeMembers[]; 
     unreadMessages: number; 
-    lastMessage?: LastMessage | null; 
+    messages: Messages[]; 
     isGroup: boolean; 
   } 
 
-  export type LastMessage = {
+  export type AllTimeMembers = {
     id: string; 
-    senderId: string; 
+  } 
+
+  export type Messages = {
+    id: string; 
     sender: Sender; 
     content: string; 
     createdAt?: number | null; 
@@ -269,9 +361,18 @@ export namespace GetChats {
   } 
 
   export type Recipients = {
-    id: string; 
+    user: User; 
+    message: Message; 
     receivedAt?: number | null; 
     readAt?: number | null; 
+  } 
+
+  export type User = {
+    id: string; 
+  } 
+
+  export type Message = {
+    id: string; 
   } 
 }
 export namespace GetUsers {
@@ -286,6 +387,50 @@ export namespace GetUsers {
     id: string; 
     name?: string | null; 
     picture?: string | null; 
+  } 
+}
+export namespace MessageAdded {
+  export type Variables = {
+    chatId?: string | null;
+  }
+
+  export type Subscription = {
+    messageAdded?: MessageAdded | null; 
+  } 
+
+  export type MessageAdded = {
+    id: string; 
+    sender: Sender; 
+    content: string; 
+    createdAt?: number | null; 
+    type: number; 
+    recipients: Recipients[]; 
+    ownership: boolean; 
+    chat: Chat; 
+  } 
+
+  export type Sender = {
+    id: string; 
+    name?: string | null; 
+  } 
+
+  export type Recipients = {
+    user: User; 
+    message: Message; 
+    receivedAt?: number | null; 
+    readAt?: number | null; 
+  } 
+
+  export type User = {
+    id: string; 
+  } 
+
+  export type Message = {
+    id: string; 
+  } 
+
+  export type Chat = {
+    id: string; 
   } 
 }
 export namespace RemoveAllMessages {

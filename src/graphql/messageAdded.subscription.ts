@@ -4,25 +4,34 @@ import gql from 'graphql-tag';
 export const messageAddedSubscription = gql`
   subscription messageAdded($chatId: ID) {
     messageAdded(chatId: $chatId) {
-      id,
       __typename,
-      senderId,
+      id,
       sender {
-        id,
         __typename,
+        id,
         name,
       },
       content,
       createdAt,
       type,
       recipients {
-        id,
         __typename,
+        user {
+          __typename,
+          id,
+        },
+        message {
+          __typename,
+          id,
+        },
         receivedAt,
         readAt,
       },
       ownership,
-      chatId,
+      chat {
+        __typename,
+        id,
+      },
     }
   }
 `;

@@ -1,9 +1,12 @@
-import {ApolloQueryResult, MutationOptions} from 'apollo-client';
+import {ApolloQueryResult, MutationOptions, WatchQueryOptions} from 'apollo-client';
 import {concat, map, share, switchMap} from 'rxjs/operators';
 import {Apollo, QueryRef} from 'apollo-angular';
 import {Injectable} from '@angular/core';
 import {getChatsQuery} from '../../graphql/getChats.query';
-import {AddChat, AddGroup, AddMessage, GetChat, GetChats, GetUsers, RemoveAllMessages, RemoveChat, RemoveMessages} from '../../types';
+import {
+  AddChat, AddGroup, AddMessage, GetChat, GetChats, GetUsers, MessageAdded, RemoveAllMessages, RemoveChat,
+  RemoveMessages
+} from '../../types';
 import {getChatQuery} from '../../graphql/getChat.query';
 import {addMessageMutation} from '../../graphql/addMessage.mutation';
 import {removeChatMutation} from '../../graphql/removeChat.mutation';
@@ -21,6 +24,7 @@ import {FetchResult} from 'apollo-link';
 import {messageAddedSubscription} from '../../graphql/messageAdded.subscription';
 import {chatAddedSubscription} from '../../graphql/chatAdded.subscription';
 
+// FIXME: it shouldn't be hardcoded
 const currentUserId = '1';
 const currentUserName = 'Ethan Gonzalez';
 
@@ -31,10 +35,14 @@ export class ChatsService {
   chats: GetChats.Chats[];
   getChatWqSubject: AsyncSubject<QueryRef<GetChat.Query>>;
   addChat$: Observable<FetchResult<AddChat.Mutation | AddGroup.Mutation>>;
+  messagesAmount = 3;
 
   constructor(private apollo: Apollo) {
-    this.getChatsWq = this.apollo.watchQuery<GetChats.Query>({
-      query: getChatsQuery
+    this.getChatsWq = this.apollo.watchQuery<GetChats.Query>(<WatchQueryOptions>{
+      query: getChatsQuery,
+      variables: <GetChats.Variables>{
+        amount: this.messagesAmount,
+      },
     });
 
     this.getChatsWq.subscribeToMore({
@@ -59,14 +67,15 @@ export class ChatsService {
           return prev;
         }
 
-        const newMessage: GetChats.LastMessage | any = subscriptionData.data.messageAdded;
+        const newMessage: MessageAdded.MessageAdded = subscriptionData.data.messageAdded;
+        console.log(newMessage);
 
         // We need to update the cache for both Chat and Chats. The following updates the cache for Chat.
         try {
           // Read the data from our cache for this query.
           const {chat}: GetChat.Query = this.apollo.getClient().readQuery({
             query: getChatQuery, variables: {
-              chatId: newMessage.chatId,
+              chatId: newMessage.chat.id,
             }
           });
 
@@ -79,7 +88,8 @@ export class ChatsService {
         }
 
         return Object.assign({}, prev, {
-          chats: [...prev.chats.map(_chat => _chat.id === newMessage.chatId ? {..._chat, lastMessage: newMessage} : _chat)]
+          chats: [...prev.chats.map(_chat =>
+            _chat.id === newMessage.chat.id ? {..._chat, messages: [..._chat.messages, newMessage]} : _chat)]
         });
       }
     });
@@ -102,10 +112,10 @@ export class ChatsService {
     const _chat = this.chats && this.chats.find(chat => chat.id === chatId) || null;
     const chat$FromCache = of<GetChat.Chat>({
       id: chatId,
-      name: this.chats ? _chat.name : '',
-      picture: this.chats ? _chat.picture : '',
-      isGroup: this.chats ? _chat.isGroup : false,
-      messages: this.chats && _chat.lastMessage ? [_chat.lastMessage] : [],
+      name: this.chats ? _chat && _chat.name : '',
+      picture: this.chats ? _chat && _chat.picture : '',
+      isGroup: this.chats ? _chat && _chat.isGroup : false,
+      messages: this.chats && _chat && _chat.messages.length ? _chat.messages : [],
     });
 
     const getApolloWatchQuery = (id: string) => {
@@ -178,15 +188,14 @@ export class ChatsService {
         addMessage: {
           id: ChatsService.getRandomId(),
           __typename: 'Message',
-          senderId: currentUserId,
           sender: {
             id: currentUserId,
             __typename: 'User',
             name: currentUserName,
           },
           content,
-          createdAt: moment().unix(),
-          type: 0,
+          createdAt: String(moment().unix()),
+          type: 1,
           recipients: [],
           ownership: true,
         },
@@ -208,11 +217,19 @@ export class ChatsService {
         // Update last message cache
         {
           // Read the data from our cache for this query.
-          const {chats}: GetChats.Query = store.readQuery({ query: getChatsQuery });
+          const {chats}: GetChats.Query = store.readQuery({
+            query: getChatsQuery,
+            variables: <GetChats.Variables>{
+              amount: this.messagesAmount,
+            }
+          });
           // Add our comment from the mutation to the end.
-          chats.find(chat => chat.id === chatId).lastMessage = addMessage;
+          const chat = chats.find(_chat => _chat.id === chatId);
+          chat.messages.push(addMessage);
           // Write our data back to the cache.
-          store.writeQuery({ query: getChatsQuery, data: {chats} });
+          store.writeQuery({ query: getChatsQuery, variables: <GetChats.Variables>{
+              amount: this.messagesAmount,
+            }, data: {chats} });
         }
       },
     });
@@ -245,20 +262,20 @@ export class ChatsService {
 
   removeMessages(chatId: string, messages: GetChat.Messages[], messageIdsOrAll: string[] | boolean) {
     let variables: RemoveMessages.Variables | RemoveAllMessages.Variables;
-    let ids: string[];
+    let ids: string[] = [];
     let mutation: DocumentNode;
 
     if (typeof messageIdsOrAll === 'boolean') {
-      variables = {chatId, all: messageIdsOrAll};
+      variables = {chatId, all: messageIdsOrAll} as RemoveAllMessages.Variables;
       ids = messages.map(message => message.id);
       mutation = removeAllMessagesMutation;
     } else {
-      variables = {chatId, messageIds: messageIdsOrAll};
+      variables = {chatId, messageIds: messageIdsOrAll} as RemoveMessages.Variables;
       ids = messageIdsOrAll;
       mutation = removeMessagesMutation;
     }
 
-    return this.apollo.mutate({
+    return this.apollo.mutate(<MutationOptions>{
       mutation,
       variables,
       optimisticResponse: {
@@ -290,9 +307,7 @@ export class ChatsService {
           // Read the data from our cache for this query.
           const {chats}: GetChats.Query = store.readQuery({ query: getChatsQuery });
           // Fix last comment
-          chats.find(chat => chat.id === chatId).lastMessage = messages
-            .filter(message => !ids.includes(message.id))
-            .sort((a, b) => b.createdAt - a.createdAt)[0] || null;
+          chats.find(chat => chat.id === chatId).messages = messages || [];
           // Write our data back to the cache.
           store.writeQuery({ query: getChatsQuery, data: {chats} });
         }
@@ -301,7 +316,7 @@ export class ChatsService {
   }
 
   getUsers() {
-    const query = this.apollo.watchQuery<GetUsers.Query>({
+    const query = this.apollo.watchQuery<GetUsers.Query>(<WatchQueryOptions>{
       query: getUsersQuery,
     });
     const users$ = query.valueChanges.pipe(
@@ -314,7 +329,8 @@ export class ChatsService {
   // Checks if the chat is listed for the current user and returns the id
   getChatId(recipientId: string) {
     const _chat = this.chats.find(chat => {
-      return !chat.isGroup && chat.userIds.includes(currentUserId) && chat.userIds.includes(recipientId);
+      return !chat.isGroup && !!chat.allTimeMembers.find(user => user.id === currentUserId) &&
+        !!chat.allTimeMembers.find(user => user.id === recipientId);
     });
     return _chat ? _chat.id : false;
   }
@@ -332,9 +348,12 @@ export class ChatsService {
           __typename: 'Chat',
           name: users.find(user => user.id === recipientId).name,
           picture: users.find(user => user.id === recipientId).picture,
-          userIds: [currentUserId, recipientId],
+          allTimeMembers: [
+            {id: currentUserId, __typename: 'User'},
+            {id: recipientId, __typename: 'User'}
+            ],
           unreadMessages: 0,
-          lastMessage: null,
+          messages: [],
           isGroup: false,
         },
       },
@@ -364,9 +383,12 @@ export class ChatsService {
           __typename: 'Chat',
           name: groupName,
           picture: 'https://randomuser.me/api/portraits/thumb/lego/1.jpg',
-          userIds: [currentUserId, recipientIds],
+          allTimeMembers: [
+            {id: currentUserId, __typename: 'User'},
+            recipientIds.map(id => ({id, __typename: 'User'}))
+          ],
           unreadMessages: 0,
-          lastMessage: null,
+          messages: [],
           isGroup: true,
         },
       },

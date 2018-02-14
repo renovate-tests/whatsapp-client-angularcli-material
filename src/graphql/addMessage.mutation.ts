@@ -4,20 +4,26 @@ import gql from 'graphql-tag';
 export const addMessageMutation = gql`
   mutation AddMessage($chatId: ID!, $content: String!) {
     addMessage(chatId: $chatId, content: $content) {
-        id,
         __typename,
-        senderId,
+        id,
         sender {
-          id,
           __typename,
+          id,
           name,
         },
         content,
         createdAt,
         type,
         recipients {
-          id,
           __typename,
+          user {
+            __typename,
+            id,
+          },
+          message {
+            __typename,
+            id,
+          },
           receivedAt,
           readAt,
         },
