@@ -52,19 +52,14 @@ export class AppModule {
     apollo: Apollo,
     httpLink: HttpLink,
   ) {
-    /*apollo.create({
-      link: httpLink.create({uri: 'http://localhost:3000/graphql'}),
-      cache: new InMemoryCache()
-    });*/
-
     const subscriptionLink = new WebSocketLink({
       uri:
         'ws://localhost:3000/subscriptions',
       options: {
         reconnect: true,
-        connectionParams: {
+        connectionParams: () => ({
           authToken: localStorage.getItem('Authorization') || null
-        }
+        })
       }
     });
 

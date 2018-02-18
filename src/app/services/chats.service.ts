@@ -221,15 +221,21 @@ export class ChatsService {
             query: getChatsQuery,
             variables: <GetChats.Variables>{
               amount: this.messagesAmount,
-            }
+            },
           });
           // Add our comment from the mutation to the end.
           const chat = chats.find(_chat => _chat.id === chatId);
           chat.messages.push(addMessage);
           // Write our data back to the cache.
-          store.writeQuery({ query: getChatsQuery, variables: <GetChats.Variables>{
+          store.writeQuery({
+            query: getChatsQuery,
+            variables: <GetChats.Variables>{
               amount: this.messagesAmount,
-            }, data: {chats} });
+            },
+            data: {
+              chats,
+            },
+          });
         }
       },
     });
@@ -247,7 +253,12 @@ export class ChatsService {
       },
       update: (store, { data: { removeChat } }) => {
         // Read the data from our cache for this query.
-        const {chats}: GetChats.Query = store.readQuery({ query: getChatsQuery });
+        const {chats}: GetChats.Query = store.readQuery({
+          query: getChatsQuery,
+          variables: <GetChats.Variables>{
+            amount: this.messagesAmount,
+          },
+        });
         // Remove the chat (mutable)
         for (const index of chats.keys()) {
           if (chats[index].id === removeChat) {
@@ -255,7 +266,15 @@ export class ChatsService {
           }
         }
         // Write our data back to the cache.
-        store.writeQuery({ query: getChatsQuery, data: {chats} });
+        store.writeQuery({
+          query: getChatsQuery,
+          variables: <GetChats.Variables>{
+            amount: this.messagesAmount,
+          },
+          data: {
+            chats,
+          },
+        });
       },
     });
   }
@@ -305,11 +324,24 @@ export class ChatsService {
         // Update last message cache
         {
           // Read the data from our cache for this query.
-          const {chats}: GetChats.Query = store.readQuery({ query: getChatsQuery });
+          const {chats}: GetChats.Query = store.readQuery({
+            query: getChatsQuery,
+            variables: <GetChats.Variables>{
+              amount: this.messagesAmount,
+            },
+          });
           // Fix last comment
           chats.find(chat => chat.id === chatId).messages = messages || [];
           // Write our data back to the cache.
-          store.writeQuery({ query: getChatsQuery, data: {chats} });
+          store.writeQuery({
+            query: getChatsQuery,
+            variables: <GetChats.Variables>{
+              amount: this.messagesAmount,
+            },
+            data: {
+              chats,
+            },
+          });
         }
       },
     });
@@ -359,11 +391,24 @@ export class ChatsService {
       },
       update: (store, { data: { addChat } }) => {
         // Read the data from our cache for this query.
-        const {chats}: GetChats.Query = store.readQuery({ query: getChatsQuery });
+        const {chats}: GetChats.Query = store.readQuery({
+          query: getChatsQuery,
+          variables: <GetChats.Variables>{
+            amount: this.messagesAmount,
+          },
+        });
         // Add our comment from the mutation to the end.
         chats.push(addChat);
         // Write our data back to the cache.
-        store.writeQuery({ query: getChatsQuery, data: {chats} });
+        store.writeQuery({
+          query: getChatsQuery,
+          variables: <GetChats.Variables>{
+            amount: this.messagesAmount,
+          },
+          data: {
+            chats,
+          },
+        });
       },
     }).pipe(share());
     return this.addChat$;
@@ -394,11 +439,24 @@ export class ChatsService {
       },
       update: (store, { data: { addGroup } }) => {
         // Read the data from our cache for this query.
-        const {chats}: GetChats.Query = store.readQuery({ query: getChatsQuery });
+        const {chats}: GetChats.Query = store.readQuery({
+          query: getChatsQuery,
+          variables: <GetChats.Variables>{
+            amount: this.messagesAmount,
+          },
+        });
         // Add our comment from the mutation to the end.
         chats.push(addGroup);
         // Write our data back to the cache.
-        store.writeQuery({ query: getChatsQuery, data: {chats} });
+        store.writeQuery({
+          query: getChatsQuery,
+          variables: <GetChats.Variables>{
+            amount: this.messagesAmount,
+          },
+          data: {
+            chats,
+          },
+        });
       },
     }).pipe(share());
     return this.addChat$;

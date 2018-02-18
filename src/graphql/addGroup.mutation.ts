@@ -1,24 +1,17 @@
 import gql from 'graphql-tag';
+import {fragments} from './fragment';
 
 // We use the gql tag to parse our query string into a query document
 export const addGroupMutation = gql`
   mutation AddGroup($recipientIds: [ID!]!, $groupName: String!) {
     addGroup(recipientIds: $recipientIds, groupName: $groupName) {
-      __typename,
-      id,
-      name,
-      picture,
-      allTimeMembers {
-        __typename,
-        id,
-      },
-      unreadMessages,
+      ...ChatWithoutMessages
       messages {
-        __typename,
-        id,
-        content,
-      },
-      isGroup,
+        ...Message
+      }
     }
   }
+
+  ${fragments['chatWithoutMessages']}
+  ${fragments['message']}
 `;
