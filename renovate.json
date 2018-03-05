@@ -15,5 +15,6 @@
     "master-step11"
   ],
   "renovateFork": true,
+  "prHourlyLimit": 5,
   "recreateClosed": true
 }
